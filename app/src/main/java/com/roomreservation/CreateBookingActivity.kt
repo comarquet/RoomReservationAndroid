@@ -83,13 +83,14 @@ class CreateBookingActivity : ComponentActivity() {
                         initialStartTime = existingStartTime?.toLocalTime() ?: LocalTime.of(9, 0),
                         initialEndTime = existingEndTime?.toLocalTime() ?: LocalTime.of(10, 0),
                         initialRoomId = if (existingRoomId != -1L) existingRoomId else null,
-                        onCreateBooking = { date, startTime, endTime, roomId ->
+                        onCreateBooking = { date, startTime, endTime, roomId, roomName ->
                             val booking = BookingDto(
                                 id = bookingId,
                                 startTime = LocalDateTime.of(date, startTime),
                                 endTime = LocalDateTime.of(date, endTime),
                                 roomId = roomId,
-                                userId = userId
+                                userId = userId,
+                                roomName = roomName
                             )
                             if (bookingId != -1L) {
                                 viewModel.updateBooking(booking)
@@ -113,14 +114,13 @@ fun CreateBookingScreen(
     initialStartTime: LocalTime = LocalTime.of(9, 0),
     initialEndTime: LocalTime = LocalTime.of(10, 0),
     initialRoomId: Long? = null,
-    onCreateBooking: (LocalDate, LocalTime, LocalTime, Long) -> Unit,
+    onCreateBooking: (LocalDate, LocalTime, LocalTime, Long, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var selectedDate by remember { mutableStateOf(initialDate) }
     var startTime by remember { mutableStateOf(initialStartTime) }
     var endTime by remember { mutableStateOf(initialEndTime) }
-    var selectedRoomId by remember { mutableStateOf(initialRoomId) }
-
+    var selectedRoom by remember { mutableStateOf<RoomDto?>(rooms.find { it.id == initialRoomId }) }
 
     Column(
         modifier = modifier
@@ -128,7 +128,7 @@ fun CreateBookingScreen(
             .padding(16.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
-    )  {
+    ) {
         DatePicker(
             selectedDate = selectedDate,
             onDateSelected = { selectedDate = it }
@@ -150,8 +150,8 @@ fun CreateBookingScreen(
             Text("Select Room:", style = MaterialTheme.typography.labelLarge)
             rooms.forEach { room ->
                 RadioButton(
-                    selected = selectedRoomId == room.id,
-                    onClick = { selectedRoomId = room.id },
+                    selected = selectedRoom?.id == room.id,
+                    onClick = { selectedRoom = room },
                     label = "${room.name} (Capacity: ${room.capacity})"
                 )
             }
@@ -161,14 +161,14 @@ fun CreateBookingScreen(
 
         Button(
             onClick = {
-                selectedRoomId?.let { roomId ->
-                    onCreateBooking(selectedDate, startTime, endTime, roomId)
+                selectedRoom?.let { room ->
+                    onCreateBooking(selectedDate, startTime, endTime, room.id, room.name)
                 }
             },
-            enabled = selectedRoomId != null,
+            enabled = selectedRoom != null,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
-            Text("Create Booking")
+            Text(if (initialRoomId != null) "Update Booking" else "Create Booking")
         }
     }
 }

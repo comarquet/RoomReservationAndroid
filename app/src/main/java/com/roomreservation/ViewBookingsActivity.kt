@@ -151,7 +151,7 @@ fun BookingCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Room ID: ${booking.roomId}",
+                        text = booking.roomName,
                         style = MaterialTheme.typography.titleMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
