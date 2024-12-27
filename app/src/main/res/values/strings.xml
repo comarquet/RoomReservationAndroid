@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">RoomReservation</string>
+    <string name="first_name">First name</string>
+    <string name="last_name">Last name</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="sign_up">Sign up</string>
+    <string name="title_activity_sign_up">SignUp</string>
+    <string name="create_account">Create account</string>
+    <string name="title_activity_home">HomeActivity</string>
+    <string name="title_activity_create_booking">CreateBookingActivity</string>
+    <string name="title_activity_view_bookings">ViewBookingsActivity</string>
+</resources>
