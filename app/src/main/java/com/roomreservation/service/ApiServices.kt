@@ -4,10 +4,14 @@ import com.squareup.moshi.FromJson
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.ToJson
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import okhttp3.Credentials
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Response
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.security.SecureRandom
+import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -15,6 +19,21 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
 object ApiServices {
+    private const val API_USERNAME = "admin"
+    private const val API_PASSWORD = "admin"
+    private const val baseUrl = "https://roomreservation.cleverapps.io/api/"
+
+    class BasicAuthInterceptor(val username: String, val password: String): Interceptor {
+        override fun intercept(chain: Interceptor.Chain): Response {
+            val request = chain
+                .request()
+                .newBuilder()
+                .header("Authorization", Credentials.basic(username, password))
+                .build()
+            return chain.proceed(request)
+        }
+    }
+
     class LocalDateTimeAdapter {
         @FromJson
         fun fromJson(value: String?): LocalDateTime? {
@@ -36,9 +55,30 @@ object ApiServices {
 
     private val moshiConverterFactory = MoshiConverterFactory.create(moshi)
 
-    private val baseClient = getUnsafeOkHttpClient().build()
+    private fun getUnsafeOkHttpClient(): OkHttpClient.Builder =
+        OkHttpClient.Builder().apply {
+            val trustManager = object : X509TrustManager {
+                @Throws(CertificateException::class)
+                override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {
+                }
 
-    private val baseUrl = "http://10.153.13.234:8080/api/"
+                @Throws(CertificateException::class)
+                override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
+                }
+
+                override fun getAcceptedIssuers(): Array<X509Certificate> {
+                    return arrayOf()
+                }
+            }
+            val sslContext = SSLContext.getInstance("SSL").also {
+                it.init(null, arrayOf(trustManager), SecureRandom())
+            }
+            sslSocketFactory(sslContext.socketFactory, trustManager)
+            hostnameVerifier { hostname, _ -> hostname.contains("cleverapps.io") }
+            addInterceptor(BasicAuthInterceptor(API_USERNAME, API_PASSWORD))
+        }
+
+    private val baseClient = getUnsafeOkHttpClient().build()
 
     private fun createRetrofit(): Retrofit {
         return Retrofit.Builder()
@@ -63,18 +103,4 @@ object ApiServices {
     val roomsApiService: RoomsApiService by lazy {
         createRetrofit().create(RoomsApiService::class.java)
     }
-
-    private fun getUnsafeOkHttpClient(): OkHttpClient.Builder =
-        OkHttpClient.Builder().apply {
-            val trustManager = object : X509TrustManager {
-                override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
-                override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
-                override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-            }
-            val sslContext = SSLContext.getInstance("SSL").also {
-                it.init(null, arrayOf(trustManager), SecureRandom())
-            }
-            sslSocketFactory(sslContext.socketFactory, trustManager)
-            hostnameVerifier { hostname, _ -> hostname.contains("10.153.13.234") }
-        }
 }

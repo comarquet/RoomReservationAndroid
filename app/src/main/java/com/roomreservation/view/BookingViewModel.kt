@@ -46,10 +46,9 @@ class BookingViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     bookingCreated = response.body()
                 } else {
-                    val errorBody = response.errorBody()?.string()
-                    error = when {
-                        errorBody?.contains("already booked") == true -> "This room is already booked for the selected time"
-                        else -> "Failed to create booking: ${response.code()}"
+                    error = when (response.code()) {
+                        409 -> "This room is already booked for the selected time slot"
+                        else -> "Failed to create booking: ${response.code()} - ${response.errorBody()?.string()}"
                     }
                 }
             } catch (e: Exception) {
@@ -100,16 +99,13 @@ class BookingViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     bookingCreated = response.body()
                 } else {
-                    val errorBody = response.errorBody()?.string()
-                    error = when {
-                        errorBody?.contains("already booked") == true -> "This room is already booked for the selected time"
-                        else -> "Failed to update booking: ${response.code()} - $errorBody"
+                    error = when (response.code()) {
+                        409 -> "This room is already booked for the selected time slot"
+                        else -> "Failed to update booking: ${response.code()} - ${response.errorBody()?.string()}"
                     }
-                    Log.e("BookingViewModel", "Error updating booking: $errorBody")
                 }
             } catch (e: Exception) {
                 error = "Error: ${e.message}"
-                Log.e("BookingViewModel", "Exception updating booking", e)
             }
         }
     }

@@ -2,7 +2,8 @@ package com.roomreservation.service
 
 import com.roomreservation.model.RoomDto
 import retrofit2.Call
-import retrofit2.http.*
+import retrofit2.http.GET
+import retrofit2.http.Query
 import java.time.LocalDateTime
 
 interface RoomsApiService {
