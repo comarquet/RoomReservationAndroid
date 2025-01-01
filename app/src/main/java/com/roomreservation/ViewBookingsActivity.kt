@@ -44,6 +44,8 @@ import com.roomreservation.model.BookingDto
 import com.roomreservation.ui.theme.RoomReservationTheme
 import com.roomreservation.view.BookingViewModel
 import kotlinx.coroutines.launch
+import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 class ViewBookingsActivity : ComponentActivity() {
@@ -136,6 +138,18 @@ fun BookingCard(
 ) {
     val formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm")
 
+    // Convert UTC times to local time
+    val localZone = ZoneId.systemDefault()
+    val localStartTime = booking.startTime
+        .atZone(ZoneOffset.UTC)
+        .withZoneSameInstant(localZone)
+        .toLocalDateTime()
+
+    val localEndTime = booking.endTime
+        .atZone(ZoneOffset.UTC)
+        .withZoneSameInstant(localZone)
+        .toLocalDateTime()
+
     Card(
         modifier = modifier.fillMaxWidth(),
     ) {
@@ -158,11 +172,11 @@ fun BookingCard(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Start: ${booking.startTime.format(formatter)}",
+                        text = "Start: ${localStartTime.format(formatter)}",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "End: ${booking.endTime.format(formatter)}",
+                        text = "End: ${localEndTime.format(formatter)}",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

@@ -31,7 +31,9 @@ class UserViewModel: ViewModel() {
                         user = response.body()
                     }
                     response.code() == 400 -> {
-                        error = "This email address is already in use. Please use a different email."
+                        // Read the error message from the response body
+                        val errorBody = response.errorBody()?.string()
+                        error = errorBody?.replace("\"", "") ?: "An error occurred"
                     }
                     else -> {
                         error = "An error occurred while creating your account. Please try again."

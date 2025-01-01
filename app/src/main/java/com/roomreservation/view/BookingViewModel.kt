@@ -11,6 +11,8 @@ import com.roomreservation.model.RoomDto
 import com.roomreservation.service.ApiServices
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.time.ZoneId
+import java.time.ZoneOffset
 
 class BookingViewModel : ViewModel() {
     var availableRooms by mutableStateOf<List<RoomDto>>(emptyList())
@@ -42,7 +44,23 @@ class BookingViewModel : ViewModel() {
     fun createBooking(bookingDto: BookingDto) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response = ApiServices.bookingsApiService.createBooking(bookingDto).execute()
+                val localZone = ZoneId.systemDefault()
+                val utcBookingDto = bookingDto.copy(
+                    startTime = bookingDto.startTime
+                        .atZone(localZone)
+                        .toOffsetDateTime()
+                        .toZonedDateTime()
+                        .withZoneSameInstant(ZoneOffset.UTC)
+                        .toLocalDateTime(),
+                    endTime = bookingDto.endTime
+                        .atZone(localZone)
+                        .toOffsetDateTime()
+                        .toZonedDateTime()
+                        .withZoneSameInstant(ZoneOffset.UTC)
+                        .toLocalDateTime()
+                )
+
+                val response = ApiServices.bookingsApiService.createBooking(utcBookingDto).execute()
                 if (response.isSuccessful) {
                     bookingCreated = response.body()
                 } else {
@@ -95,7 +113,23 @@ class BookingViewModel : ViewModel() {
     fun updateBooking(booking: BookingDto) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response = ApiServices.bookingsApiService.updateBooking(booking.id, booking).execute()
+                val localZone = ZoneId.systemDefault()
+                val utcBooking = booking.copy(
+                    startTime = booking.startTime
+                        .atZone(localZone)
+                        .toOffsetDateTime()
+                        .toZonedDateTime()
+                        .withZoneSameInstant(ZoneOffset.UTC)
+                        .toLocalDateTime(),
+                    endTime = booking.endTime
+                        .atZone(localZone)
+                        .toOffsetDateTime()
+                        .toZonedDateTime()
+                        .withZoneSameInstant(ZoneOffset.UTC)
+                        .toLocalDateTime()
+                )
+
+                val response = ApiServices.bookingsApiService.updateBooking(utcBooking.id, utcBooking).execute()
                 if (response.isSuccessful) {
                     bookingCreated = response.body()
                 } else {
