@@ -55,20 +55,14 @@ class CreateBookingActivity : ComponentActivity() {
         val userId = intent.getLongExtra("userId", -1)
         val bookingId = intent.getLongExtra("bookingId", -1)
 
-        // Convert UTC times from intent to local time for display
-        val existingStartTime = intent.getStringExtra("startTime")?.let { utcString ->
-            LocalDateTime.parse(utcString)
-                .atZone(ZoneOffset.UTC)
-                .withZoneSameInstant(ZoneId.systemDefault())
-                .toLocalDateTime()
+        val existingStartTime = intent.getStringExtra("startTime")?.let { startTime ->
+            LocalDateTime.parse(startTime)
         }
 
-        val existingEndTime = intent.getStringExtra("endTime")?.let { utcString ->
-            LocalDateTime.parse(utcString)
-                .atZone(ZoneOffset.UTC)
-                .withZoneSameInstant(ZoneId.systemDefault())
-                .toLocalDateTime()
+        val existingEndTime = intent.getStringExtra("endTime")?.let { endTime ->
+            LocalDateTime.parse(endTime)
         }
+
 
         val existingRoomId = intent.getLongExtra("roomId", -1)
 
@@ -93,28 +87,18 @@ class CreateBookingActivity : ComponentActivity() {
                 }
 
                 Scaffold { padding ->
-                    CreateBookingScreen(
+                    val now = LocalTime.now()
+                    CreateBookingScreen(                  
                         rooms = viewModel.availableRooms,
                         initialDate = existingStartTime?.toLocalDate() ?: LocalDate.now(),
-                        initialStartTime = existingStartTime?.toLocalTime() ?: LocalTime.of(9, 0),
-                        initialEndTime = existingEndTime?.toLocalTime() ?: LocalTime.of(10, 0),
+                        initialStartTime = existingStartTime?.toLocalTime() ?: now,
+                        initialEndTime = existingEndTime?.toLocalTime() ?: now.plusHours(1),
                         initialRoomId = if (existingRoomId != -1L) existingRoomId else null,
                         onCreateBooking = { startDateTime, endDateTime, roomId, roomName ->
-                            // Convert local time back to UTC for API
-                            val localZone = ZoneId.systemDefault()
-                            val utcStartTime = startDateTime
-                                .atZone(localZone)
-                                .withZoneSameInstant(ZoneOffset.UTC)
-                                .toLocalDateTime()
-                            val utcEndTime = endDateTime
-                                .atZone(localZone)
-                                .withZoneSameInstant(ZoneOffset.UTC)
-                                .toLocalDateTime()
-
                             val booking = BookingDto(
                                 id = bookingId,
-                                startTime = utcStartTime,
-                                endTime = utcEndTime,
+                                startTime = startDateTime,
+                                endTime = endDateTime,
                                 roomId = roomId,
                                 userId = userId,
                                 roomName = roomName
@@ -189,7 +173,6 @@ fun CreateBookingScreen(
         Button(
             onClick = {
                 selectedRoom?.let { room ->
-                    // Create LocalDateTime objects and convert to UTC
                     val startDateTime = LocalDateTime.of(selectedDate, startTime)
                     val endDateTime = LocalDateTime.of(selectedDate, endTime)
 

@@ -137,18 +137,8 @@ fun BookingCard(
     modifier: Modifier = Modifier
 ) {
     val formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm")
-
-    // Convert UTC times to local time
-    val localZone = ZoneId.systemDefault()
     val localStartTime = booking.startTime
-        .atZone(ZoneOffset.UTC)
-        .withZoneSameInstant(localZone)
-        .toLocalDateTime()
-
     val localEndTime = booking.endTime
-        .atZone(ZoneOffset.UTC)
-        .withZoneSameInstant(localZone)
-        .toLocalDateTime()
 
     Card(
         modifier = modifier.fillMaxWidth(),
