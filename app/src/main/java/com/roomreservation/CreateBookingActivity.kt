@@ -179,7 +179,7 @@ fun CreateBookingScreen(
                 RadioButton(
                     selected = selectedRoom?.id == room.id,
                     onClick = { selectedRoom = room },
-                    label = "${room.name} (Capacity: ${room.capacity})"
+                    label = room.name
                 )
             }
         } else {
