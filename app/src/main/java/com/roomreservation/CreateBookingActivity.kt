@@ -35,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.roomreservation.model.BookingDto
 import com.roomreservation.model.RoomDto
@@ -128,6 +129,7 @@ fun CreateBookingScreen(
     onCreateBooking: (LocalDateTime, LocalDateTime, Long, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     var selectedDate by remember { mutableStateOf(initialDate) }
     var startTime by remember { mutableStateOf(initialStartTime) }
     var endTime by remember { mutableStateOf(initialEndTime) }
@@ -174,9 +176,16 @@ fun CreateBookingScreen(
             onClick = {
                 selectedRoom?.let { room ->
                     val startDateTime = LocalDateTime.of(selectedDate, startTime)
-                    val endDateTime = LocalDateTime.of(selectedDate, endTime)
-
-                    onCreateBooking(startDateTime, endDateTime, room.id, room.name)
+                    if (startDateTime.isBefore(LocalDateTime.now())) {
+                        Toast.makeText(
+                            context,
+                            "Cannot create bookings in the past",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        val endDateTime = LocalDateTime.of(selectedDate, endTime)
+                        onCreateBooking(startDateTime, endDateTime, room.id, room.name)
+                    }
                 }
             },
             enabled = selectedRoom != null,
