@@ -72,6 +72,7 @@ fun SignUp(
     var user by remember { mutableStateOf(UserDto(0, "", "", "", "", 0)) }
     var confirmPassword by remember { mutableStateOf("") }
     var passwordError by remember { mutableStateOf<String?>(null) }
+    var formError by remember { mutableStateOf<String?>(null) }
 
     Column {
         Text(
@@ -83,7 +84,8 @@ fun SignUp(
             onValueChange = { user = user.copy(firstName = it) },
             modifier = Modifier
                 .padding(12.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            isError = formError != null && user.firstName.isBlank()
         )
 
         Text(
@@ -95,7 +97,8 @@ fun SignUp(
             onValueChange = { user = user.copy(lastName = it) },
             modifier = Modifier
                 .padding(12.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            isError = formError != null && user.lastName.isBlank()
         )
 
         Text(
@@ -107,7 +110,8 @@ fun SignUp(
             onValueChange = { user = user.copy(email = it) },
             modifier = Modifier
                 .padding(12.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            isError = formError != null && user.email.isBlank()
         )
 
         Text(
@@ -120,7 +124,7 @@ fun SignUp(
             label = { Text(stringResource(R.string.password)) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            isError = passwordError != null,
+            isError = passwordError != null || (formError != null && user.password.isBlank()),
             modifier = Modifier
                 .padding(12.dp)
                 .fillMaxWidth()
@@ -132,7 +136,7 @@ fun SignUp(
             label = { Text("Confirm Password") },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            isError = passwordError != null,
+            isError = passwordError != null || (formError != null && confirmPassword.isBlank()),
             modifier = Modifier
                 .padding(12.dp)
                 .fillMaxWidth()
@@ -146,15 +150,35 @@ fun SignUp(
             )
         }
 
+        if (formError != null) {
+            Text(
+                text = formError!!,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(start = 12.dp)
+            )
+        }
+
         Button(
             onClick = {
-                if (user.password != confirmPassword) {
-                    passwordError = "Passwords do not match"
-                } else if (user.password.length < 8) {
-                    passwordError = "Password must be at least 8 characters"
-                } else {
-                    passwordError = null
-                    onClick(user)
+                when {
+                    user.firstName.isBlank() || user.lastName.isBlank() ||
+                            user.email.isBlank() || user.password.isBlank() || confirmPassword.isBlank() -> {
+                        formError = "All fields must be filled"
+                        passwordError = null
+                    }
+                    user.password != confirmPassword -> {
+                        passwordError = "Passwords do not match"
+                        formError = null
+                    }
+                    user.password.length < 8 -> {
+                        passwordError = "Password must be at least 8 characters"
+                        formError = null
+                    }
+                    else -> {
+                        passwordError = null
+                        formError = null
+                        onClick(user)
+                    }
                 }
             },
             modifier = Modifier
