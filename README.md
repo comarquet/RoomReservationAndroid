@@ -58,7 +58,7 @@ The **Room Reservation** application allows users to:
 
 
 #### Creating a Reservation
-1. Click the **Create Reservation** button on the dashboard.
+1. Click the **Create New Booking** button on the dashboard.
 2. Fill in the following details:
    - Room Name
    - Date
@@ -67,7 +67,6 @@ The **Room Reservation** application allows users to:
 3. Click **Save** to add the reservation.
 4. The new reservation will appear in the reservation list.
           <img src="images/CreateReservation.PNG" alt="Creating Room Reservation" width="500"/>
-
 
 #### Editing a Reservation
 1. Locate the reservation in the list.
